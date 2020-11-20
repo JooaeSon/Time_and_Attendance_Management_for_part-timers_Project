@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.min.sc.sch.sqls">
+
+<select id="selectSchInfo" parameterType="SDto" resultType="java.lang.String">
+SELECT SCH_SCHEDULE FROM SCHEDULE s WHERE SCH_MONTH =#{sch_month} AND WS_CODE=#{ws_code}
+</select>
+
+<select id="selectAccess" parameterType="SDto" resultType="java.lang.String">
+SELECT SCH_REVISEABLE FROM SCHEDULE s WHERE SCH_MONTH =#{sch_month} AND WS_CODE=#{ws_code}
+</select>
+
+<insert id="insertSchInfo" parameterType="SDto">
+INSERT INTO SC.SCHEDULE
+(SCH_CODE, WS_CODE, SCH_MONTH, SCH_SCHEDULE, SCH_REVISEABLE)
+VALUES(SCHEDULE_SEQ.NEXTVAL,#{ws_code},#{sch_month},#{sch_schedule}, 'D')
+</insert>
+
+<update id="updateSchInfo" parameterType="SDto">
+UPDATE SCHEDULE SET SCH_SCHEDULE =#{sch_schedule} WHERE SCH_MONTH = #{sch_month} AND WS_CODE=#{ws_code}
+</update>
+
+<update id="updateAccess" parameterType="SDto" >
+UPDATE SCHEDULE SET SCH_REVISEABLE =#{sch_reviseable} WHERE WS_CODE =#{ws_code} AND SCH_MONTH =#{sch_month}
+</update>
+
+<delete id="deleteSchInfo" parameterType="SDto">
+DELETE FROM SCHEDULE s WHERE WS_CODE=#{ws_code} AND SCH_MONTH = #{sch_month}
+</delete>
+
+<select id="selectSchAll">
+SELECT SCH_SEQ, SCH_SCHEDULE FORM SCHEDULE
+</select>
+
+<update id="cornUpdate" parameterType="java.util.Map">
+UPDATE SCHEDULE SET SCH_SCHEDULE =#{sch_schedule} WHERE SCH_SEQ = #{sch_seq}
+</update>
+<!-- 시작일이랑 종료일 알면 그거에 해당되는 스케줄 가져와서 화면에 붙이기!! 랜더링!! 제너레이트스케줄!!  -->
+
+</mapper>

@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.min.sc.emp">
+
+<!-- 사업장 조회 -->
+   <select id="wsSearch" resultType="WSDto">
+      SELECT WS_NAME, WS_LOC, WS_NUM, WS_CODE
+            FROM WORKSPACE 
+   </select>
+
+<!-- 직원코드 자동부여 -->
+<insert id="empApplyInsert" parameterType="EDto">
+INSERT INTO EMPLOYEE(EMP_CODE, USER_ID, WS_CODE, EMP_CONFIRM, EMP_RESIGN)
+    VALUES(TO_CHAR(SYSDATE,'YYYYMMDD') || EMP_SEQ.NEXTVAL, #{user_id},#{ws_code},'D','2222-02-22')
+</insert>
+
+<!-- 입사승인이 'D'인 일반회원 조회-->
+<select id="empConfirmSelect" parameterType="java.lang.String" resultType="EUDto">
+SELECT EMP_CODE,e.USER_ID USER_ID,WS_CODE,
+       EMP_CONFIRM,u.USER_TYPE USER_TYPE,u.USER_NAME USER_NAME,
+       u.USER_ADDRESS USER_ADDRESS,u.USER_PHONE USER_PHONE,u.USER_BIRTH USER_BIRTH,
+       u.USER_GENDER USER_GENDER,u.USER_EMAIL USER_EMAIL
+   FROM EMPLOYEE e , USERINFO u  
+ WHERE e.USER_ID = u.USER_ID AND u.USER_TYPE ='employee' AND EMP_CONFIRM ='D' AND WS_CODE =#{ws_code}
+</select>
+
+<!-- 입사승인시 해당일반회원 정보 입력 후 승인완료 -->
+<update id="empApplyUpdate" parameterType="EDto">
+UPDATE EMPLOYEE 
+    SET EMP_HIREDATE=TO_DATE(#{emp_hiredate},'YYYY-MM-DD'),
+    EMP_HIREDATE_END=TO_DATE(#{emp_hiredate_end},'YYYY-MM-DD'),
+   EMP_WORKTIME_TIME=#{emp_worktime_time},
+   EMP_HOLIDAY=#{emp_holiday},
+   EMP_SALARY=#{emp_salary},
+   EMP_POSITION=#{emp_position},
+   EMP_SALARY_DAY=#{emp_salary_day},
+   EMP_APPLY=TO_DATE(#{emp_apply},'YYYY-MM-DD'),
+   EMP_RANK=#{emp_rank},
+   EMP_CONFIRM='S' 
+      WHERE USER_ID=#{user_id} AND WS_CODE=#{ws_code}
+</update>
+
+<!-- 입사거절 -->
+<update id="empApplyReject" parameterType="java.lang.String">
+UPDATE EMPLOYEE SET EMP_CONFIRM='G' WHERE EMP_CODE=#{emp_code}
+</update>
+
+<!-- 직원 상세 조회 -->
+<resultMap type="EUDto" id="empCodeSelectResult">
+   <result column ="user_id" property="user_id"/>
+   <result column ="user_name" property="user_name" javaType="java.lang.String" />
+   <result column="user_address" property="user_address"/>
+   <result column="user_birth" property="user_birth"/>
+   <result column="user_email" property="user_email"/>
+   <result column="user_gender" property="user_gender"/>
+   <result column="user_phone" property="user_phone"/>
+   <result column="emp_code" property="emp_code"/>
+   <result column="emp_apply" property="emp_apply"/>
+   <result column="emp_confirm" property="emp_confirm"/>
+   <result column="emp_hiredate" property="emp_hiredate"/>
+   <result column="emp_hiredate_end" property="emp_hiredate_end"/>
+   <result column="emp_holiday" property="emp_holiday"/>
+   <result column="emp_position" property="emp_position"/>
+   <result column="emp_rank" property="emp_rank"/>
+   <result column="emp_salary" property="emp_salary"/>
+   <result column="emp_salary_day" property="emp_salary_day"/>
+   <result column="emp_worktime_time" property="emp_worktime_time"/>
+   <result column="ws_code" property="ws_code"/>
+</resultMap>
+
+<!-- 직원코드로 상세화면 -->
+<select id="empDetailSelect" resultMap="empCodeSelectResult" parameterType="EUDto">
+SELECT e.EMP_CODE EMP_CODE, e.USER_ID USER_ID, e.WS_CODE, e.EMP_RANK EMP_RANK, TO_CHAR(e.EMP_HIREDATE,'YYYY-MM-DD') EMP_HIREDATE, TO_CHAR(e.EMP_HIREDATE_END,'YYYY-MM-DD') EMP_HIREDATE_END, e.EMP_POSITION EMP_POSITION, e.EMP_WORKTIME_TIME EMP_WORKTIME_TIME, 
+         e.EMP_HOLIDAY EMP_HOLIDAY, EMP_SALARY, EMP_SALARY_DAY, EMP_CONFIRM, TO_CHAR(EMP_APPLY,'YYYY-MM-DD') EMP_APPLY, USER_EMAIL, USER_PHONE, 
+            USER_NAME, USER_ADDRESS, USER_GENDER, USER_BIRTH
+      FROM EMPLOYEE e , USERINFO u
+         WHERE u.USER_ID = e.USER_ID 
+         	AND EMP_CODE=#{emp_code} AND WS_CODE=#{ws_code}
+</select>
+
+<!-- 직원모두조회 -->
+
+<select id="empAllSelect"  parameterType="java.lang.String" resultType="EUDto">
+SELECT e.EMP_CODE EMP_CODE,u.USER_ID USER_ID, USER_TYPE, USER_EMAIL,
+      USER_PHONE, USER_NAME, USER_ADDRESS,
+      USER_GENDER, USER_BIRTH, EMP_HIREDATE,
+      EMP_HIREDATE_END, EMP_POSITION, EMP_WORKTIME_TIME,EMP_CODE,
+      EMP_HOLIDAY, EMP_SALARY, EMP_SALARY_DAY, EMP_APPLY, EMP_RANK, WS_CODE
+       FROM USERINFO u, EMPLOYEE e
+       WHERE EMP_CONFIRM='S' AND e.USER_ID = u.USER_ID AND WS_CODE=#{ws_code}
+
+</select>
+
+
+<!-- 직원조회 -->
+<select id="empSelect" parameterType="EUDto" resultType="EUDto">
+SELECT EMP_CODE, u.USER_ID ,USER_TYPE, USER_EMAIL,
+           USER_PHONE, USER_NAME, USER_ADDRESS, 
+           USER_GENDER, USER_BIRTH, EMP_HIREDATE, 
+           EMP_HIREDATE_END, EMP_POSITION, EMP_WORKTIME_TIME, 
+           EMP_HOLIDAY, EMP_SALARY, EMP_SALARY_DAY, 
+           EMP_APPLY, EMP_RANK
+      FROM USERINFO u ,EMPLOYEE e
+            WHERE u.USER_ID = e.USER_ID AND e.USER_ID=#{user_id} AND WS_CODE=#{ws_code}
+</select>
+
+<!-- 직원정보수정 -->
+<update id="empUpdate" parameterType="java.lang.String">
+UPDATE  EMPLOYEE 
+   SET EMP_HIREDATE=TO_DATE(#{emp_hiredate},'YYYY-MM-DD'), 
+         EMP_HIREDATE_END=TO_DATE(#{emp_hiredate_end},'YYYY-MM-DD'),
+         EMP_POSITION=#{emp_position}, 
+         EMP_WORKTIME_TIME=#{emp_worktime_time}, 
+         EMP_HOLIDAY=#{emp_holiday},
+         EMP_SALARY=#{emp_salary},
+         EMP_SALARY_DAY=#{emp_salary_day},
+         EMP_RANK=#{emp_rank}
+        WHERE EMP_CODE=#{emp_code} 
+</update>
+
+<!-- 퇴사처리 -->
+
+<update id="">
+UPDATE EMPLOYEE
+	SET EMP_CONFIRM='G'
+		WHERE EMP_CODE =#{emp_code}
+</update>
+
+
+<!-- 스케줄에서 사용할 사업장 내 직급별 지원조회 언니 나 이거하나만요,,ㅜ -->
+<select id="selectWsMember" parameterType="EDto" resultType="java.lang.String">
+SELECT u.USER_ID||' '||WS_CODE||' '||u.USER_NAME MEMBERINFO 
+FROM EMPLOYEE e,USERINFO u 
+WHERE u.USER_ID =e.USER_ID AND WS_CODE =#{ws_code} AND EMP_RANK =#{emp_rank}
+</select>
+
+
+</mapper>

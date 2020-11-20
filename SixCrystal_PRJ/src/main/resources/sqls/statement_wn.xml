@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.min.sc.wn">
+<select id="wnBoardSelect" parameterType="java.lang.String" resultType="WNDto">
+SELECT WN_SEQ, USER_ID, WN_TITLE, 
+WN_CONTENT, WN_REGDATE, WN_HIT, WN_ENABLED
+  FROM WEB_NOTICE_BOARD
+    WHERE WN_ENABLED='Y'
+    <if test="wn_seq!= null">
+    	AND WN_SEQ = #{wn_seq}
+    </if>
+</select>
+
+<insert id="wnBoardInsert" parameterType="WNDto">
+INSERT INTO WEB_NOTICE_BOARD
+(WN_SEQ, USER_ID, WN_TITLE, WN_CONTENT, WN_REGDATE, WN_HIT, WN_ENABLED)
+VALUES(WEB_NOTICE_BOARD_SEQ.NEXTVAL, #{user_id}, #{wn_title}, #{wn_content}, SYSDATE, 0, 'Y')
+</insert>
+
+
+<update id="wnBoardUpdate" parameterType="WNDto">
+UPDATE WEB_NOTICE_BOARD
+SET  WN_TITLE=#{wn_title}, WN_CONTENT=#{wn_content}
+WHERE WN_SEQ=#{wn_seq}
+</update>
+
+<update id="wnBoardHitCount">
+UPDATE WEB_NOTICE_BOARD
+SET WN_HIT = (SELECT WN_HIT FROM WEB_NOTICE_BOARD 
+WHERE WN_SEQ=#{wn_seq})+1
+WHERE WN_SEQ=#{wn_seq}
+</update>
+
+<update id="wnBoardDelete" >
+UPDATE WEB_NOTICE_BOARD
+SET WN_ENABLED='N'
+WHERE WN_SEQ=#{wn_seq}
+</update>
+
+<select id="wnboardListPage" parameterType="PGDto"
+	resultType="WNDto">
+	SELECT WN_SEQ, USER_ID, WN_TITLE, 
+           WN_CONTENT, WN_REGDATE, WN_HIT, WN_ENABLED 
+           FROM
+	       (SELECT ROWNUM RNUM, WN_SEQ, USER_ID, WN_TITLE, 
+                   WN_CONTENT, WN_REGDATE, WN_HIT, WN_ENABLED
+	               FROM
+	               (SELECT WN_SEQ, USER_ID, WN_TITLE, 
+                           WN_CONTENT, WN_REGDATE, WN_HIT, WN_ENABLED
+                           FROM WEB_NOTICE_BOARD
+		                        WHERE WN_ENABLED = 'Y'
+		            )
+		    )
+		          WHERE RNUM BETWEEN #{start} AND #{last}
+</select>
+ 
+
+<select id="wnboardListTotal" resultType="java.lang.Integer">
+	SELECT COUNT(*) FROM WEB_NOTICE_BOARD WHERE WN_ENABLED = 'Y'
+</select>
+
+
+</mapper>

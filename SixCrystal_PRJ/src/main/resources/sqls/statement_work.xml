@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.min.sc.work">
+  
+    <!-- 해당 근무일정 조회 -->
+	<select id="workInfoSelect"  parameterType="java.util.Map"
+							 resultType="java.lang.String">  
+		SELECT  SCH_SCHEDULE 
+		FROM SCHEDULE
+		WHERE SCH_MONTH=#{sch_month} AND WS_CODE=#{ws_code}
+  	</select>
+  	
+  	<!-- 근무 일정 테이블 기초 사항 조회 -->
+  	<select id="workInfoSet" parameterType="java.util.Map"
+  								resultType="java.util.Map">
+	  	SELECT  WS_CODE, SCH_MONTH, SCH_CODE
+		FROM SCHEDULE
+		WHERE SCH_MONTH=#{sch_month} AND WS_CODE=#{ws_code}
+  	</select>
+  	
+  	 <!-- 근태 테이블 기초사항 설정 -->
+  	<insert id="workInfobasic_Insert" parameterType="java.util.Map">
+  		INSERT INTO WORKMANAGE (SCH_CODE, WS_CODE, SCH_MONTH, USER_ID)
+		VALUES(#{SCH_CODE},#{WS_CODE}, #{SCH_MONTH}, #{USER_ID})	
+  	</insert> 
+  
+  	<!-- 근태 테이블에 기록 존재 여부 확인  -->
+  	<select id="selectWorkcheck" parameterType="java.util.Map"
+  									resultType="java.lang.String">
+	  	SELECT WORK_CHECK FROM WORKMANAGE w 
+		WHERE WS_CODE=#{ws_code} AND SCH_MONTH=#{sch_month} AND USER_ID=#{user_id}
+  	</select>
+  	
+  	<!-- 근태 기록 갱신-->
+  	<update id="updateDaily" parameterType="java.util.Map">
+  		UPDATE WORKMANAGE SET WORK_CHECK=#{work_check}, USER_ID=#{user_id}, EMPLOYEE_RANK=#{employee_rank}
+			WHERE WS_CODE=#{ws_code} AND SCH_MONTH=#{sch_month} AND USER_ID=#{user_id}
+  	</update>
+  	
+  	<!-- 해당 사업장 wi-fi 조회하기 -->
+  	<select id="wifiInfoSelect" parameterType="java.lang.String" resultType="java.lang.String">
+	  	SELECT WS_IP 
+		FROM WORKSPACE
+		WHERE WS_CODE=#{ws_code}
+  	</select>
+  	 
+  	 <!-- 개인정보 조회하기 -->
+  	 <select id="selectPersonal" parameterType="java.util.Map"
+  	 									resultType="java.lang.String">
+  	 	SELECT WORK_CHECK FROM WORKMANAGE
+		WHERE WS_CODE=#{ws_code} AND SCH_MONTH =#{sch_month} AND USER_ID =#{user_id}
+  	 </select>
+  	 
+<!--   	 <select id="selectAdmin"> -->
+<!--   	 	SELECT USER_ID, EMPLOYEE_RANK, WORK_CHECK -->
+<!-- 	FROM WORKMANAGE   -->
+<!-- 		WHERE WS_CODE= #{ws_code} AND SCH_MONTH =#{sch_month} -->
+  	 
+<!--   	 </select> -->
+  	 
+<!--   	 <select id="selectManager"> -->
+<!--   	 	SELECT USER_ID, EMPLOYEE_RANK, WORK_CHECK -->
+<!-- 	FROM WORKMANAGE -->
+<!-- 		WHERE WS_CODE#{ws_code} AND SCH_MONTH =#{sch_month} AND EMPLOYEE_RANK=#{employee_rank} -->
+  	 
+<!--   	 </select> -->
+  	 
+  	 <!-- 하위 직원 조회하기 -->
+  	 <select id="selectLowRank" parameterType="java.util.Map"
+  	 								resultType="WMDto">
+  	 	SELECT USER_ID, EMPLOYEE_RANK, WORK_CHECK
+				FROM WORKMANAGE
+			<if test='employee_rank.equals("man")'>
+			 WHERE WS_CODE= #{ws_code} AND SCH_MONTH= #{sch_month} AND EMPLOYEE_RANK= #{finder_rank}
+			</if>
+			<if test='employee_rank.equals("admin")'>
+			 WHERE WS_CODE= #{ws_code} AND SCH_MONTH= #{sch_month}
+			</if>
+  	 </select>
+  	 
+  	 <!-- 6개월 지난 기록 삭제 -->
+  	 <delete id="deleteWorkRecord" parameterType="java.lang.String">
+  	 	DELETE FROM WORKMANAGE w 
+		WHERE SCH_MONTH=#{sch_month}
+  	 </delete>
+  
+</mapper>

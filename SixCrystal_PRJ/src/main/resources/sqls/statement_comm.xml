@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.min.sc.comm">
+
+<select id="boardFileSelect" parameterType="java.util.Map" resultType="BFDto">
+SELECT BF_SEQ, BOARD_CODE, BF_FILENAME, BOARD_SEQ
+FROM BOARD_FILE
+	<where>
+	<if test="board_code!=null">
+  	AND BOARD_CODE=#{board_code}
+  	</if>
+  	<if test="wn_seq!=null">
+	AND BOARD_SEQ=#{wn_seq}
+	</if>
+	<if test="bf_seq!=null">
+	AND BF_SEQ=#{bf_seq}
+	</if>
+	</where>
+</select>
+
+<insert id="boardFileInsert" parameterType="BFDto">
+INSERT INTO BOARD_FILE
+(BF_SEQ, BOARD_CODE, BF_FILENAME, BOARD_SEQ)
+VALUES(BOARD_FILE_SEQ.NEXTVAL, #{board_code}, #{bf_filename}, (SELECT MAX(WN_SEQ) FROM WEB_NOTICE_BOARD))
+</insert>
+
+<insert id="hitInsert" parameterType="HDto">
+INSERT INTO HIT_COUNT
+(HIT_SEQ, BOARD_CODE, BOARD_SEQ, HIT_IKOIKO)
+VALUES(HIT_SEQ.NEXTVAL, #{board_code}, #{board_seq}, #{hit_ikoiko})
+
+</insert>
+
+<select id="hitSelect" parameterType="java.util.Map" resultType="HDto">
+SELECT  HIT_SEQ, HIT_IKOIKO
+FROM HIT_COUNT WHERE BOARD_CODE=#{board_code}
+AND BOARD_SEQ=#{wn_seq} 
+</select>
+
+<update id="hitUpdate" parameterType="java.util.Map">
+UPDATE HIT_COUNT
+SET  HIT_IKOIKO=#{hit_ikoiko}
+WHERE HIT_SEQ=#{hit_seq}
+</update>
+
+
+</mapper>
+

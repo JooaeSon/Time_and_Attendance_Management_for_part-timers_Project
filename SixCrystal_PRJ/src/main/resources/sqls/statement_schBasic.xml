@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.min.sc.schbasic">
+
+<insert id="schBasicInsert" parameterType="SBDto">
+INSERT INTO SCHEDULE_BASIC
+(SCHBASIC_SEQ, WS_CODE, SCHBASIC_JSON,EMPLOYEE_RANK,SCHBASIC_RECORD)
+VALUES(SCHEDULE_BASIC_SEQ.NEXTVAL,#{ws_code}, #{schbasic_json},#{employee_rank},SYSDATE)
+</insert>
+
+<select id="schBasicListSelect" parameterType="java.util.Map" resultType="SBDto">
+SELECT SCHBASIC_SEQ, SCHBASIC_JSON,EMPLOYEE_RANK,SCHBASIC_RECORD 
+  FROM SCHEDULE_BASIC 
+    WHERE WS_CODE=#{ws_code}
+    <if test="employee_rank!= null">
+    	AND EMPLOYEE_RANK =#{employee_rank}
+    </if>
+</select>
+
+<select id="schBasicSelect" parameterType="java.util.Map" resultType="SBDto">
+SELECT SCHBASIC_SEQ, SCHBASIC_JSON,EMPLOYEE_RANK,SCHBASIC_RECORD 
+  FROM SCHEDULE_BASIC 
+    WHERE WS_CODE=#{ws_code} AND SCHBASIC_RECORD=#{schbasic_record}
+</select>
+
+<update id="schBasicUpdate" parameterType="java.util.Map">
+UPDATE SCHEDULE_BASIC SET SCHBASIC_JSON =#{schbasic_json}, SCHBASIC_RECORD=SYSDATE  WHERE SCHBASIC_SEQ=#{seq}
+</update>
+
+<!-- <select id="schBasicChkSelect" parameterType="java.util.Map" resultType="SBDto"> -->
+<!-- SELECT SCHBASIC_SEQ, SCHBASIC_JSON,EMPLOYEE_RANK  -->
+<!--   FROM SCHEDULE_BASIC  -->
+<!--     WHERE WS_CODE=#{ws_code} AND EMPLOYEE_RANK=#{employee_rank} -->
+<!--     AND SCHBASIC_RECORD=(SELECT MAX(SCHBASIC_RECORD) FROM SCHEDULE_BASIC WHERE WS_CODE=#{ws_code}) -->
+<!-- </select> -->
+
+<select id="schBasicChkSelect" parameterType="java.util.Map" resultType="SBDto">
+SELECT sb2.SCHBASIC_JSON,sb2.EMPLOYEE_RANK
+FROM SCHEDULE_BASIC sb2 ,(SELECT MAX(SCHBASIC_RECORD) SCHBASIC_RECORD,EMPLOYEE_RANK,WS_CODE FROM SCHEDULE_BASIC sb GROUP BY (EMPLOYEE_RANK,WS_CODE)) sm
+WHERE sb2.WS_CODE=#{ws_code} AND sb2.EMPLOYEE_RANK=#{employee_rank} AND sb2.SCHBASIC_RECORD=sm.SCHBASIC_RECORD
+</select>
+
+
+<select id="schBasicSelAll" resultType="SBDto">
+SELECT SCHBASIC_SEQ,SCHBASIC_RECORD FROM SCHEDULE_BASIC
+</select>
+
+<delete id="schBasicDel" parameterType="java.lang.Integer">
+DELETE SCHEDULE_BASIC
+WHERE SCHBASIC_SEQ=#{schbasic_seq}
+</delete>
+</mapper>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.2.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+
+<context:component-scan base-package="com.min.sc"/>
+
+ <mvc:annotation-driven/>
+ 
+  <security:http auto-config="true" use-expressions="true">
+   
+      <security:access-denied-handler error-page="/access_denied_page.do"/>
+      
+      <security:intercept-url pattern="/resources/**" access="permitAll" />
+      <security:intercept-url pattern="/admin**" access="hasRole('Admin')" />
+      <security:intercept-url pattern="/user**" access="hasRole('User')" />
+      <security:intercept-url pattern="/**"  access="permitAll" />
+      
+      <security:intercept-url pattern="/loginForm.do" access="isAnonymous()" />
+      <security:intercept-url pattern="/agreeForm.do" access="isAnonymous()" />
+      
+      <security:form-login
+         login-processing-url="/login.do"
+         login-page="/loginForm.do"
+         authentication-failure-handler-ref="loginFailureHandler"
+         authentication-success-handler-ref="loginSuccessHandler"   
+         username-parameter="username"
+         password-parameter="password"
+         always-use-default-target='true'/>
+
+      <!-- 로그아웃되면 세션 초기화 해준다 -->
+      <security:logout invalidate-session="true"
+         logout-url="/logout.do" logout-success-url="/loginForm.do?logout"
+         delete-cookies="JSESSIONID,SPRING_SECURITY_REMEMBER_ME_COOKIE"/>
+      <!-- token-validity-seconds : 자동로그인 기억시간 4주 -->
+      <!-- authentication-success-handler-ref : 자동로그인으로 들어와도 loginSuccessHandler를 통해 로그인을 진행 -->
+      <!-- data-source-ref : 자동로그인 테이블의 위치 -->
+      <security:remember-me key="sc" token-validity-seconds="2419200"
+      remember-me-parameter="remember-me" authentication-success-handler-ref="loginSuccessHandler"
+      data-source-ref="dataSource" user-service-ref="securityController"/>
+
+      <security:csrf disabled="true"/>
+   
+   <security:session-management invalid-session-url="/loginForm.do"  session-fixation-protection="changeSessionId">
+      <security:concurrency-control max-sessions="1" expired-url="/loginForm.do"/>
+   </security:session-management>
+   
+   </security:http>
+   
+   <!-- UserDetailsService를 상속받아 코스튬한 컨트롤러 bean 생성 -->
+	<bean id="securityController" class="com.min.sc.security.ctrl.UserSecurityCtrl"/>
+   
+   <bean id="passwordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"/>
+
+   <!-- 로그인 성공 핸들러 -->
+   <bean id="loginSuccessHandler" class="com.min.sc.security.handler.LoginSuccessHandler">
+      <property name="loginidname" value="username"/>
+      <property name="defaultUrl" value="/loginResult.do"/>
+   </bean> 
+   
+   <!-- 로그인 실패 핸들러 -->
+   <bean id="loginFailureHandler" class="com.min.sc.security.handler.LoginFailureHandler">
+      <property name="loginidname" value="username"/>
+       <property name="loginpwdname" value="password"/>
+      <property name="errormsgname" value="ERRORMSG"/>
+       <property name="defaultFailureUrl" value="/loginForm.do?error"/>
+   </bean>
+
+	<security:authentication-manager>
+       <security:authentication-provider user-service-ref="securityController">
+       		<security:password-encoder ref="passwordEncoder"/> 
+       </security:authentication-provider>
+   </security:authentication-manager>
+</beans>

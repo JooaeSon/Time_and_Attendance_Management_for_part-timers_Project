@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.min.sc.ws">
+
+	<!--회원 유형 검색 -->
+	<select id="wsTypeSelect">
+		SELECT USER_TYPE
+		FROM USERINFO
+		WHERE USER_ID=#{user_id}
+	</select>
+	
+	<!--고용주 회원이 소유한 사업장 조회 -->
+	<select id="wsErCodeSelect" resultType="java.lang.String">
+		SELECT WS_CODE
+		FROM WORKSPACE
+		WHERE USER_ID=#{user_id}
+		AND WS_DELFLAG!='D'
+	</select>
+	
+	<!--일반 회원이 소속된 사업장 조회 -->
+	<select id="wsEeCodeSelect" resultType="java.lang.String">
+		SELECT WS_CODE
+		FROM EMPLOYEE
+		WHERE USER_ID=#{user_id}
+		AND EMP_CONFIRM = 'S'
+		AND EMP_RESIGN='2222-02-22'
+	</select>
+
+	<!-- 사업장 정보 조회 -->
+	<select id="wsInfoSelect" resultType="WSDto">
+		SELECT WS_CODE, USER_ID, WS_NAME,
+		WS_LOC, WS_NUM, WS_EMAIL,
+		WS_IP, WS_SSID, WS_VOL,
+		WS_DELD, WS_DELFLAG
+		FROM WORKSPACE
+		WHERE WS_CODE=#{ws_code}
+		AND WS_DELFLAG !='S'
+	</select>
+
+	<!-- 현재 날짜 조회 -->
+	<select id="wsDateSelect" resultType="java.lang.String">
+		SELECT TO_CHAR(SYSDATE,
+		'YYMMDD') FROM DUAL
+	</select>
+
+	<!-- 사업장 정보 입력 -->
+	<insert id="wsInfoInsert" parameterType="WSDto">
+		INSERT INTO
+		WORKSPACE(WS_CODE, USER_ID, WS_NAME,
+		WS_LOC, WS_NUM, WS_EMAIL,
+		WS_IP, WS_SSID, WS_VOL,
+		WS_DELD, WS_DELFLAG)
+		VALUES(#{ws_code}, #{user_id}, #{ws_name},
+		#{ws_loc}, #{ws_num}, #{ws_email},
+		#{ws_ip}, #{ws_ssid}, #{ws_vol},
+		'2222-02-22', 'N')
+	</insert>
+
+	<!-- 사업장 정보 수정 -->
+	<update id="wsInfoUpdate" parameterType="WSDto">
+		UPDATE WORKSPACE
+		SET
+		WS_LOC=#{ws_loc}, WS_NUM=#{ws_num}, WS_EMAIL=#{ws_email},
+		WS_IP=#{ws_ip}, WS_SSID=#{ws_ssid}, WS_VOL=#{ws_vol}
+		WHERE WS_CODE=#{ws_code}
+	</update>
+	
+	<!-- 처리중인 삭제 요청 조회 -->
+	<select id="wsReqSelect" resultType="java.lang.String">
+		SELECT WS_DELFLAG
+		FROM WORKSPACE
+		WHERE WS_CODE=#{ws_code}
+	</select>
+
+	<!-- 사업장 삭제 요청 -->
+	<update id="wsDelReqUpdate">
+		UPDATE WORKSPACE
+		SET WS_DELFLAG='R'
+		WHERE WS_CODE=#{ws_code}
+	</update>
+
+	<!-- 관리자가 삭제요청 조회 -->
+	<select id="wsDelReqSelect" resultType="WSDto">
+		SELECT WS_CODE, USER_ID
+		FROM WORKSPACE
+		WHERE WS_DELFLAG='R'
+	</select>
+
+	<!-- 사업장 삭제(삭제요청 승인) -->
+	<update id="wsDelReqYUpdate">
+		UPDATE WORKSPACE
+		SET WS_DELFLAG='D',
+		WS_DELD=SYSDATE
+		WHERE WS_CODE=#{ws_code}
+	</update>
+
+	<!-- 삭제요청 거절 -->
+	<update id="wsDelReqNUpdate">
+		UPDATE WORKSPACE
+		SET WS_DELFLAG='N'
+		WHERE WS_CODE=#{ws_code}
+	</update>
+
+</mapper>

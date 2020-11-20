@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd" >
+<configuration>
+
+<typeAliases>
+	<typeAlias type="com.min.sc.sch.dtos.SchBasicDTO" alias="SBDto"/>
+	<typeAlias type="com.min.sc.sch.dtos.SchDTO" alias="SDto"/>
+	<typeAlias type="com.min.sc.user.dtos.UserInfoDTO" alias="UIDto"/>
+	<typeAlias type="com.min.sc.user.dtos.UserLoginDTO" alias="ULDto"/>
+  <typeAlias type="com.min.sc.emp.dtos.EmpDTO" alias="EDto"/>
+  <typeAlias type="com.min.sc.wn.dtos.WNBoardDTO" alias="WNDto"/>
+  <typeAlias type="com.min.sc.work.dtos.WMDto" alias="WMDto"/>
+  <typeAlias type="com.min.sc.salary.dtos.SalaryMonthPayDto" alias="SalMonthDto"/>
+  <typeAlias type="com.min.sc.ws.dtos.WorkSpaceDTO" alias="WSDto"/>
+ 	<typeAlias type="com.min.sc.comm.dtos.BoardFileDTO" alias="BFDto"/>
+ 	<typeAlias type="com.min.sc.comm.dtos.HitDTO" alias="HDto"/>
+  <typeAlias type="com.min.sc.wsn.dtos.WSNBoardDTO" alias="WSNDto"/>
+  <typeAlias type="com.min.sc.emp.dtos.EmpUserDTO" alias="EUDto"/>
+  <typeAlias type="com.min.sc.comm.dtos.PagingDTO" alias="PGDto"/>
+</typeAliases>
+
+<mappers>
+	<mapper resource="/sqls/statement_schBasic.xml" />
+	<mapper resource="/sqls/statement_user.xml" />
+  	<mapper resource="/sqls/statement_emp.xml"/>
+  	<mapper resource="/sqls/statement_wn.xml"/>
+  		<mapper resource="/sqls/statement_sch.xml" />
+  <mapper resource="/sqls/statement_work.xml"/>
+  <mapper resource="/sqls/statement_salary.xml"/>
+  <mapper resource="/sqls/statement_ws.xml"/>
+  	<mapper resource="/sqls/statement_comm.xml"/>
+  <mapper resource="sqls/statement_wsn.xml"/>
+</mappers>
+</configuration>

@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.min.sc.user">
+
+<resultMap type="com.min.sc.user.dtos.UserInfoDTO" id="JoinDto">
+	<id column="USER_ID" property="user_id"/>
+	<id column="USER_TYPE" property="user_type"/>
+	<id column="USER_EMAIL" property="user_email"/>
+	<id column="USER_PHONE" property="user_phone"/>
+	<id column="USER_NAME" property="user_name"/>
+	<id column="USER_ADDRESS" property="user_address"/>
+	<id column="USER_GENDER" property="user_gender"/>
+	<id column="USER_BIRTH" property="user_birth"/>
+	<id column="USER_DELFLAG" property="logindto.user_delflag"/>
+	<id column="USER_DELDATE" property="logindto.user_deldate"/>
+	<id column="USER_LASTLOGIN" property="logindto.user_lastlogin"/>
+</resultMap>
+
+<!-- 회원가입 (로그인정보) -->
+<insert id="joinLogin" parameterType="ULDto">
+INSERT INTO USERLOGIN
+(USER_ID, USER_PASSWORD, USER_AUTH, USER_DELFLAG, USER_DELDATE, USER_LASTLOGIN)
+VALUES(#{user_id}, #{user_password}, 'ROLE_User', 'U', '', '')
+</insert>
+ 
+<!-- 고용주 회원가입 (개인정보입력) -->
+<insert id="joinInfoEmployer" parameterType="UIDto">
+INSERT INTO USERINFO
+(USER_ID, USER_TYPE, USER_EMAIL, USER_PHONE, USER_NAME, USER_ADDRESS, USER_GENDER, USER_BIRTH, USER_EAGREE, USER_SAGREE)
+VALUES(#{user_id}, 'employer', #{user_email}, #{user_phone}, #{user_name}, #{user_address}, #{user_gender},#{user_birth}, #{user_eagree}, #{user_sagree})
+</insert>
+<!-- 일반직원 회원가입 (개인정보입력) -->
+<insert id="joinInfoEmployee" parameterType="UIDto">
+INSERT INTO USERINFO
+(USER_ID, USER_TYPE, USER_EMAIL, USER_PHONE, USER_NAME, USER_ADDRESS, USER_GENDER, USER_BIRTH, USER_EAGREE, USER_SAGREE)
+VALUES(#{user_id}, 'employee', #{user_email}, #{user_phone}, #{user_name}, #{user_address}, #{user_gender},#{user_birth}, #{user_eagree}, #{user_sagree})
+</insert>
+
+<!-- 아이디 중복검사 -->
+<!-- 비밀번호 찾기 때 아이디 확인으로도 사용 -->
+<select id="idChk" resultType="java.lang.String" parameterType="java.lang.String">
+SELECT USER_ID
+	FROM USERLOGIN
+		WHERE USER_ID=#{user_id}
+</select>
+
+<!-- 이메일/휴대폰 중복검사 -->
+<select id="duplChkPhone" resultType="UIDto" parameterType="java.lang.String">
+SELECT USER_ID, USER_EMAIL, USER_PHONE 
+	FROM USERINFO
+    		WHERE USER_PHONE = #{user_phone}
+</select>	
+<select id="duplChkEmail" resultType="UIDto" parameterType="java.lang.String">
+SELECT USER_ID, USER_EMAIL, USER_PHONE 
+	FROM USERINFO
+    		WHERE USER_EMAIL = #{user_email}
+</select>	
+
+<!-- 로그인(시큐리티) -->
+<select id="login" resultType="ULDto" parameterType="java.lang.String">
+SELECT USER_PASSWORD, USER_AUTH
+	FROM USERLOGIN
+		WHERE USER_ID = #{user_id}
+</select>	
+<!--LoginSuccessHandler에서 사용하기 위한(회원상태, 회원 권한 판단) 로그인한 유저 가져오기-->
+<select id="getLoginUser"  resultType="ULDto" parameterType="java.lang.String">
+SELECT USER_ID, USER_AUTH, USER_DELFLAG, USER_DELDATE, USER_LASTLOGIN
+	FROM USERLOGIN
+		WHERE USER_ID = #{user_id}
+</select>
+<!-- 로그인 (마지막 로그인 날짜 업데이트) -->
+<update id="loginUpdate" parameterType="java.lang.String">
+UPDATE USERLOGIN 
+	SET USER_LASTLOGIN = SYSDATE
+		WHERE USER_ID =#{user_id}
+</update> 
+<!-- 로그인 (세션에 담을 정보 가져오기) -->
+<select id="loginInfo" parameterType="java.lang.String" resultMap="JoinDto">
+SELECT USER_ID, USER_TYPE, USER_AUTH, USER_EMAIL, USER_PHONE, USER_NAME, USER_ADDRESS, USER_GENDER, USER_BIRTH, USER_EAGREE, USER_SAGREE 
+ 	FROM USERLOGIN JOIN USERINFO 
+ 	USING(USER_ID)
+		WHERE USER_ID= #{user_id}
+</select>	
+
+<!-- 아이디 찾기 -->
+<select id="findID" resultType="java.lang.String" parameterType="java.util.Map">
+	SELECT RPAD(SUBSTR(USER_ID,1,5),LENGTH(USER_ID),'*')
+		FROM USERINFO 
+		WHERE USER_NAME =#{user_name}
+		<if test="user_email != null">
+			AND USER_EMAIL = #{user_email}
+		</if>
+		<if test="user_phone != null">
+			AND USER_PHONE = #{user_phone}
+		</if>
+</select>	
+
+<select id="getIdForFindID" resultType="java.lang.String" parameterType="java.util.Map">
+	SELECT USER_ID
+		FROM USERINFO
+		<where>
+			<if test="user_email != null">
+			USER_EMAIL = #{user_email}
+		</if>
+		<if test="user_phone != null">
+			USER_PHONE = #{user_phone}
+		</if>
+		</where>
+</select>
+
+<!-- 개인 정보 조회 -->
+<select id="selectMyInfo" resultType="UIDto" parameterType="java.lang.String">
+	SELECT USER_ID, USER_EMAIL, USER_PHONE, USER_NAME, USER_ADDRESS, USER_GENDER, USER_BIRTH, USER_EAGREE, USER_SAGREE
+		FROM USERINFO 
+			WHERE USER_ID = #{user_id}
+</select>
+
+<!-- 일반 정보 수정 -->
+<update id="modifyUserInfo" parameterType="UIDto">
+ UPDATE USERINFO
+    <set>
+      <if test="user_email != null">USER_EMAIL=#{user_email},</if>
+      <if test="user_phone != null">USER_PHONE=#{user_phone},</if>
+      <if test="user_name != null">USER_NAME=#{user_name},</if>
+      <if test="user_address != null">USER_ADDRESS=#{user_address},</if>
+      <if test="user_birth != null">USER_BIRTH=#{user_birth},</if>
+      <if test="user_eagree != null">USER_EAGREE=#{user_eagree},</if>
+      <if test="user_sagree != null">USER_SAGREE=#{user_sagree}</if>
+    </set>
+  WHERE USER_ID=#{user_id}	
+</update>
+
+<!-- 비밀번호 찾기(정보일치 확인/비밀번호 수정) -->
+<!-- 정보 일치 확인 -->
+<select id="matchInfo" resultType="java.lang.String" parameterType="java.util.Map">
+	SELECT USER_NAME
+		FROM USERINFO 
+		WHERE USER_ID =#{user_id}
+		<if test="user_email != null">
+			AND USER_EMAIL = #{user_email}
+		</if>
+		<if test="user_phone != null">
+			AND USER_PHONE = #{user_phone}
+		</if>
+</select>
+<!-- 비밀번호 수정 -->
+<update id="modifyPw" parameterType="java.util.Map">
+UPDATE USERLOGIN 
+	SET USER_PASSWORD = #{user_password}
+	WHERE USER_ID = #{user_id}
+</update>
+
+<!-- 회원 탈퇴 / 강제 탈퇴 (Map<String, List<String>> 사용, map의 key : idLists)-->
+<update id="wdUser"> 
+	UPDATE USERLOGIN
+		SET USER_DELFLAG='T', USER_DELDATE=SYSDATE 
+			WHERE USER_ID IN 
+			<foreach collection="idLists" item="user_id" open="(" separator="," close=")">
+				#{user_id}
+			</foreach>
+</update> 
+<!-- 회원 탈퇴시 쿠키 테이블의 정보 삭제하기(Map<String, List<String>> 사용, map의 key : idLists)-->
+<delete id="removeCookies">
+	DELETE FROM PERSISTENT_LOGINS 
+		WHERE USERNAME IN
+		<foreach collection="idLists" item="user_id" open="(" separator="," close=")">
+				#{user_id}
+		</foreach>
+</delete>
+
+<!-- 회원 강제 탈퇴 알림 이메일을 보낼 대상 찾기 -->
+<select id="chkDateForEmail" resultType="java.lang.String">
+SELECT USER_ID
+   	FROM USERLOGIN
+      WHERE MONTHS_BETWEEN(SYSDATE, USER_LASTLOGIN) >= '11' AND USER_DELFLAG = 'U'
+</select>   
+
+
+<!-- 회원 전체조회 / 상세조회 / 유형별 조회 다이나믹쿼리 -->
+<select id="getUserList" resultMap="JoinDto" parameterType="java.util.Map">
+	SELECT USER_ID, USER_TYPE, USER_EMAIL, USER_PHONE, USER_NAME, USER_ADDRESS, 
+		USER_GENDER, USER_BIRTH, USER_DELFLAG, USER_DELDATE, USER_LASTLOGIN 
+		FROM USERINFO JOIN USERLOGIN
+		USING(USER_ID)
+		<if test="user_id != null">
+		WHERE USER_ID=#{user_id}
+		</if>
+		<if test="user_type != null">
+		WHERE USER_TYPE=#{user_type}
+		</if>
+		ORDER BY USER_TYPE DESC, USER_DELFLAG DESC, USER_ID ASC
+</select>
+
+<!-- 사업장 상세 정보 조회 -->
+<select id="wsDetailSelect" parameterType="java.util.Map" resultType="WSDto">
+	SELECT WS_CODE, USER_ID,
+	WS_NAME,
+	WS_LOC, WS_NUM, WS_EMAIL,
+	WS_IP, WS_SSID, WS_VOL,
+	WS_DELD, WS_DELFLAG
+	FROM WORKSPACE
+	<if test="ws_code != null">
+		WHERE WS_CODE=#{ws_code}
+	</if>
+</select>
+
+<!-- 회원 자동 탈퇴를 위한 마지막 로그인날짜 체크 -->
+<select id="chkLastLogin" resultType="java.lang.String">
+ SELECT USER_ID
+   FROM USERLOGIN
+      WHERE MONTHS_BETWEEN(SYSDATE, USER_LASTLOGIN) >= '12' AND USER_DELFLAG = 'U'
+</select>
+
+<!-- 회원 정보 영구 삭제를 위한 탈퇴 날짜 체크 -->
+<select id="chkDelDate" resultType="java.lang.String">
+SELECT USER_ID
+   FROM USERLOGIN
+      WHERE MONTHS_BETWEEN(SYSDATE, USER_DELDATE) >= '6' AND USER_DELFLAG = 'T'
+</select> 
+
+<!-- 회원 삭제 (개인 정보 삭제 / 로그인 정보 삭제) -->
+<!-- 회원 정보 영구 삭제 (개인 정보) -->
+<!-- (Map<String, List<String>> 사용, map의 key : idLists) -->
+<delete id="deleteUserInfo">
+	DELETE FROM USERINFO
+	WHERE USER_ID IN 
+	<foreach collection="idLists" item="user_id" open="(" separator="," close=")">
+		#{user_id}
+	</foreach>
+</delete>
+<!-- 회원 정보 영구 삭제 (로그인 정보) -->
+<!-- (Map<String, List<String>> 사용, map의 key : idLists) -->
+<delete id="deleteUserLogin">
+	DELETE FROM USERLOGIN
+	WHERE USER_ID IN 
+	<foreach collection="idLists" item="user_id" open="(" separator="," close=")">
+		#{user_id}
+	</foreach>
+</delete>
+
+</mapper>
