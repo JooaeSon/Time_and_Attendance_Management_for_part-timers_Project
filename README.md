@@ -1,5 +1,5 @@
 ## Time_and_Attendance_Management_for_part-timers_Project
-아르바이트생을 위한 근태관리 프로젝트 입니다.😊
+Java기반 Spring Framework 아르바이트생을 위한 근태관리 프로젝트 입니다.😊
 -----------
 #### 1. 프로젝트 SUBJECT: 아르바이트생 일정관리 및 출결체크, 근태관리, 급여관리
 #### 2. 프로젝트기간 : 2020년 6월(1개월)
