@@ -32,13 +32,13 @@
               배포도구
                      + Maven
               형상관리도구
-                     +github
+                     + github
               문서 작성 도구
                      + PowerPoint, Excel, Word, google driver, 한글
               데이터베이스 도구
-                     +Dbeaver
+                     + Dbeaver
               배포클라우드
-                     +구름 IDE
+                     + 구름 IDE
                   
                   
    ##### 💻사용 API
